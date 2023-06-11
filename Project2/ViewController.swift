@@ -28,13 +28,13 @@ final class ViewController: UIViewController {
         button1.layer.borderWidth = 1
         button2.layer.borderWidth = 1
         button3.layer.borderWidth = 1
-        
+
         button1.layer.borderColor = UIColor.lightGray.cgColor
         button2.layer.borderColor = UIColor.lightGray.cgColor
         button3.layer.borderColor = UIColor.lightGray.cgColor
-        
+
         countries += ["estonia", "france", "germany", "ireland", "italy", "monaco", "nigeria", "poland", "russia", "spain", "uk", "us"]
-        
+
         askQuestion(action: nil)
     }
 
@@ -53,22 +53,18 @@ final class ViewController: UIViewController {
         countOfAnswers += 1
         
         if countOfAnswers == 10 {
-            let ac = UIAlertController(title: "Congratulations!", message: "Your final score is \(score)", preferredStyle: .alert)
-            ac.addAction(UIAlertAction(title: "Continue", style: .default) { action in
-                self.score = 0
-                self.countOfAnswers = 0
-                self.askQuestion(action: nil)
-            })
-            present(ac, animated: true)
+            showAlert(title: "Congratulations!", message: "Your final score is \(score)", buttonTitle: "Continue") { [weak self] _ in
+                self?.score = 0
+                self?.countOfAnswers = 0
+                self?.askQuestion(action: nil)
+            }
         } else {
-            let ac = UIAlertController(title: title, message: "Your score is \(score).", preferredStyle: .alert)
-            ac.addAction(UIAlertAction(title: "Continue", style: .default, handler: askQuestion))
-            present(ac, animated: true)
+            showAlert(title: title, message: "Your score is \(score).", buttonTitle: "Continue", action: askQuestion)
         }
     }
 
     // MARK: - Private Methods
-    private func askQuestion(action: UIAlertAction!) {
+    private func askQuestion(action: UIAlertAction?) {
         countries.shuffle()
         
         button1.setImage(UIImage(named: countries[0]), for: .normal)
@@ -79,9 +75,13 @@ final class ViewController: UIViewController {
         title = countries[correctAnswer].uppercased() + " Score: \(score)"
     }
 
+    private func showAlert(title: String, message: String?, buttonTitle: String, action: ((UIAlertAction) -> Void)?) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: buttonTitle, style: .default, handler: action))
+        present(alertController, animated: true)
+    }
+
     @objc private func showScore() {
-        let alertVC = UIAlertController(title: "Your score is \(score)", message: nil, preferredStyle: .alert)
-        alertVC.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alertVC, animated: true)
+        showAlert(title: "Your score is \(score)", message: nil, buttonTitle: "OK", action: nil)
     }
 }
