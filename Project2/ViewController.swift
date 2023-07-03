@@ -17,6 +17,7 @@ final class ViewController: UIViewController {
     private var countries = [String]()
     private var correctAnswer = 0
     private var score = 0
+    private var highestScore = 0
     private var countOfAnswers = 0
 
     // MARK: - UIViewController
@@ -34,6 +35,8 @@ final class ViewController: UIViewController {
         button3.layer.borderColor = UIColor.lightGray.cgColor
 
         countries += ["estonia", "france", "germany", "ireland", "italy", "monaco", "nigeria", "poland", "russia", "spain", "uk", "us"]
+        
+        highestScore = UserDefaults.standard.integer(forKey: "HighestScore")
 
         askQuestion(action: nil)
     }
@@ -53,10 +56,28 @@ final class ViewController: UIViewController {
         countOfAnswers += 1
         
         if countOfAnswers == 10 {
-            showAlert(title: "Congratulations!", message: "Your final score is \(score)", buttonTitle: "Continue") { [weak self] _ in
-                self?.score = 0
-                self?.countOfAnswers = 0
-                self?.askQuestion(action: nil)
+            if score > highestScore {
+                highestScore = score
+                UserDefaults.standard.set(highestScore, forKey: "HighestScore")
+                showAlert(title: "Congratulations!", message: "Your new score \(score) beat the previous high score!", buttonTitle: "OK") { [weak self] _ in
+                    guard let self else {
+                        return
+                    }
+                    
+                    self.score = 0
+                    self.countOfAnswers = 0
+                    self.askQuestion(action: nil)
+                }
+            } else {
+                showAlert(title: "Congratulations!", message: "Your final score is \(score)", buttonTitle: "Continue") { [weak self] _ in
+                    guard let self else {
+                        return
+                    }
+                    
+                    self.score = 0
+                    self.countOfAnswers = 0
+                    self.askQuestion(action: nil)
+                }
             }
         } else {
             showAlert(title: title, message: "Your score is \(score).", buttonTitle: "Continue", action: askQuestion)
