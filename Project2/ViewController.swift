@@ -8,7 +8,7 @@
 import UIKit
 
 final class ViewController: UIViewController {
-    // MARK: - IBOutlet
+    // MARK: - IBOutlets
     @IBOutlet private var button1: UIButton!
     @IBOutlet private var button2: UIButton!
     @IBOutlet private var button3: UIButton!
@@ -24,7 +24,9 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Show Score", style: .done, target: self, action: #selector(showScore))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Show Score", style: .done, target: self, action: #selector(showScore)
+        )
         
         button1.layer.borderWidth = 1
         button2.layer.borderWidth = 1
@@ -41,8 +43,18 @@ final class ViewController: UIViewController {
         askQuestion(action: nil)
     }
 
-    // MARK: - IBAction
+    // MARK: - IBActions
+    @IBAction private func buttonTouchedDown(_ sender: UIButton) {
+        UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.2, initialSpringVelocity: 5) {
+            sender.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }
+    }
+    
     @IBAction private func buttonTapped(_ sender: UIButton) {
+        UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.2, initialSpringVelocity: 5) {
+            sender.transform = .identity
+        }
+        
         var title: String
 
         if sender.tag == correctAnswer {
@@ -96,13 +108,16 @@ final class ViewController: UIViewController {
         title = countries[correctAnswer].uppercased() + " Score: \(score)"
     }
 
-    private func showAlert(title: String, message: String?, buttonTitle: String, action: ((UIAlertAction) -> Void)?) {
+    private func showAlert(
+        title: String, message: String?, buttonTitle: String, action: ((UIAlertAction) -> Void)?
+    ) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: buttonTitle, style: .default, handler: action))
         present(alertController, animated: true)
     }
 
-    @objc private func showScore() {
+    @objc
+    private func showScore() {
         showAlert(title: "Your score is \(score)", message: nil, buttonTitle: "OK", action: nil)
     }
 }
