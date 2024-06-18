@@ -5,6 +5,7 @@
 //  Created by Антон Кашников on 22.02.2023.
 //
 
+import UserNotifications
 import UIKit
 
 final class ViewController: UIViewController {
@@ -39,6 +40,8 @@ final class ViewController: UIViewController {
         countries += ["estonia", "france", "germany", "ireland", "italy", "monaco", "nigeria", "poland", "russia", "spain", "uk", "us"]
         
         highestScore = UserDefaults.standard.integer(forKey: "HighestScore")
+        
+        setNotifications()
 
         askQuestion(action: nil)
     }
@@ -97,6 +100,79 @@ final class ViewController: UIViewController {
     }
 
     // MARK: - Private Methods
+    
+    private func setNotifications() {
+        let notificationCenter = UNUserNotificationCenter.current()
+        
+        notificationCenter.getNotificationSettings { [weak self] notificationSettings in
+            switch notificationSettings.authorizationStatus {
+            case .notDetermined:
+                let alertController = UIAlertController(
+                    title: "Daily reminder",
+                    message: "Allow notifications to be reminded daily of playing Guess the Flag",
+                    preferredStyle: .alert
+                )
+                alertController.addAction(.init(title: "Next", style: .default) { _ in
+                    self?.requestNotificationsAuthorization()
+                })
+                
+                DispatchQueue.main.async {
+                    self?.present(alertController, animated: true)
+                }
+            case .authorized:
+                self?.scheduleNotifications()
+            case .denied, .provisional, .ephemeral: break
+            @unknown default: break
+            }
+        }
+    }
+    
+    private func requestNotificationsAuthorization() {
+        let notificationCenter = UNUserNotificationCenter.current()
+        
+        notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, _ in
+            if granted {
+                self?.scheduleNotifications()
+            } else {
+                let alertController = UIAlertController(
+                    title: "Notifications",
+                    message: "Your choice has been saved. You can change it in any time.",
+                    preferredStyle: .alert
+                )
+                alertController.addAction(.init(title: "OK", style: .default))
+                
+                DispatchQueue.main.async {
+                    self?.present(alertController, animated: true)
+                }
+            }
+        }
+    }
+    
+    private func scheduleNotifications() {
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.removeAllPendingNotificationRequests()
+        
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.title = "Daily reminder"
+        notificationContent.body = "Play your daily Guess the Flag game"
+        notificationContent.categoryIdentifier = "reminder"
+        notificationContent.sound = .default
+        
+        // goal is to send notifications once a day for 7 days after the latest app launch
+        for day in 1...7 {
+            notificationCenter.add(
+                .init(
+                    identifier: UUID().uuidString,
+                    content: notificationContent,
+                    trigger: UNTimeIntervalNotificationTrigger(
+                        timeInterval: 86_400 * Double(day),
+                        repeats: false
+                    )
+                )
+            )
+        }
+    }
+    
     private func askQuestion(action: UIAlertAction?) {
         countries.shuffle()
         
